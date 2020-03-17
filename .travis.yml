@@ -6,7 +6,6 @@ addons:
   apt:
     packages:
     - libboost-test-dev
-    - libspdlog-devs
 script:
 - cmake .
 - cmake --build .

@@ -64,23 +64,23 @@ auto int_vector_to_str_vector(const std::vector<std::vector<int>>& ip_pool)
 }
 
 //filter_helper с одним аргументом сортирует вектор <int>
-inline auto filter_helper(std::vector<std::vector<int>>& ip_pool)
+inline auto filter_helper(const std::vector<std::vector<int>>& ip_pool)
 {
-    std::sort(ip_pool.rbegin(),ip_pool.rend());
-    return int_vector_to_str_vector(ip_pool);
+    auto tmp = ip_pool;
+    std::sort(tmp.rbegin(),tmp.rend());
+    return int_vector_to_str_vector(tmp);
 }
 
 //filter_helper с одним аргументом сортирует вектор.
 //Эта функция вызывается ровно один раз - при начальной сортировке ip_pool
-inline auto filter_helper(std::vector<std::vector<std::string>>& ip_pool)
+inline auto filter_helper(const std::vector<std::vector<std::string>>& ip_pool)
 {
     return filter_helper(str_vector_to_int_vector(ip_pool));
 }
 
 inline auto filter_helper(const std::vector<std::vector<int>>& ip_pool,int)
 {
-    auto tmp = ip_pool;
-    return filter_helper(tmp);
+    return filter_helper(ip_pool);
 }
 template<class... Args>
 inline auto filter_helper(const std::vector<std::vector<int>>& ip_pool,int index,int byte,Args... args)
@@ -174,7 +174,7 @@ int main(int argc, char const *argv[])
                     }
                 }
             }
-            return result;
+            return filter_helper(result);
         };
         // </Лямбды>
 

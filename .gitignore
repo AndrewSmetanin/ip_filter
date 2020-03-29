@@ -4,3 +4,4 @@ public.gpg
 CMakeCache.txt
 ip_filter.tst
 ip_filter.tsv
+.vscode/settings.json

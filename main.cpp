@@ -116,7 +116,7 @@ int main(int argc, char const *argv[])
 
         //Сортировка
         ip_pool = filter_helper(ip_pool);
-        std::cout<<"--------------------------"<<std::endl;
+        //std::cout<<"--------------------------"<<std::endl;
         print_ips(ip_pool);
 
         // 222.173.235.246
@@ -158,7 +158,7 @@ int main(int argc, char const *argv[])
         //filter by first byte and output
         
         auto ip = filter(1);
-        std::cout<<"--------------------------"<<std::endl<<"filter(1):"<<std::endl;
+        //std::cout<<"--------------------------"<<std::endl<<"filter(1):"<<std::endl;
         print_ips(ip);
 
         // 1.231.69.33
@@ -169,7 +169,7 @@ int main(int argc, char const *argv[])
 
         //filter by first and second bytes and output
         ip = filter(46, 70);
-        std::cout<<"--------------------------"<<std::endl<<"filter(46,70):"<<std::endl;
+        //std::cout<<"--------------------------"<<std::endl<<"filter(46,70):"<<std::endl;
         print_ips(ip);
 
         // 46.70.225.39
@@ -179,7 +179,7 @@ int main(int argc, char const *argv[])
 
         //filter by any byte and output
         ip = filter_any(46);
-        std::cout<<"--------------------------"<<std::endl<<"filter_any(46):"<<std::endl;
+        //std::cout<<"--------------------------"<<std::endl<<"filter_any(46):"<<std::endl;
         print_ips(ip);
 
         // 186.204.34.46

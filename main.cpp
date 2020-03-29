@@ -11,7 +11,7 @@
 // ("11.", '.') -> ["11", ""]
 // (".11", '.') -> ["", "11"]
 // ("11.22", '.') -> ["11", "22"]
-std::vector<std::string> split(const std::string& str, char d)
+std::vector<std::string> split(const std::string &str, char d)
 {
     std::vector<std::string> r;
 
@@ -30,39 +30,77 @@ std::vector<std::string> split(const std::string& str, char d)
     return r;
 }
 
-inline auto filter_helper(std::vector<std::vector<std::string>>& ip_pool,int)
+auto str_vector_to_int_vector(const std::vector<std::vector<std::string>>& ip_pool)
 {
-    std::sort(ip_pool.begin(),ip_pool.end(),[](const auto& s1,const auto& s2)
+    auto width = ip_pool.size();
+    auto result = std::vector<std::vector<int>>(width);
+    
+    for(size_t x = 0; x<width; ++x)
     {
-        auto length = s1.size();
-        for(size_t i = 0;i<length;++i)
+        auto height = ip_pool[x].size();
+        result[x] = std::vector<int>(height);
+        for(size_t y = 0; y<height; ++y)
         {
-            auto num1 = std::stoi(s1[i]);
-            auto num2 = std::stoi(s2[i]);
-            
-            if(num1!=num2)
-            {
-                return num1>num2;
-            }
+            result[x][y] = stoi(ip_pool[x][y]);
         }
-
-        return false;
-    });
-    return ip_pool;
+    }
+    return result;
+}
+auto int_vector_to_str_vector(const std::vector<std::vector<int>>& ip_pool)
+{
+    auto width = ip_pool.size();
+    auto result = std::vector<std::vector<std::string>>(width);
+    
+    for(size_t x = 0; x<width; ++x)
+    {
+        auto height = ip_pool[x].size();
+        result[x] = std::vector<std::string>(height);
+        for(size_t y = 0; y<height; ++y)
+        {
+            result[x][y] = std::to_string(ip_pool[x][y]);
+        }
+    }
+    return result;
 }
 
-template<class... Args>
-inline auto filter_helper(const std::vector<std::vector<std::string>>& ip_pool,int index,int byte,Args... args)
+//filter_helper с одним аргументом сортирует вектор <int>
+inline auto filter_helper(std::vector<std::vector<int>>& ip_pool)
 {
-    auto length = ip_pool.size();
-    std::vector<std::vector<std::string>> result;
-    result.reserve(length);
+    std::sort(ip_pool.rbegin(),ip_pool.rend());
+    return int_vector_to_str_vector(ip_pool);
+}
 
-    for(size_t i = 0;i<length;++i)
+//filter_helper с одним аргументом сортирует вектор.
+//Эта функция вызывается ровно один раз - при начальной сортировке ip_pool
+inline auto filter_helper(std::vector<std::vector<std::string>>& ip_pool)
+{
+    return filter_helper(str_vector_to_int_vector(ip_pool));
+}
+
+inline auto filter_helper(const std::vector<std::vector<int>>& ip_pool,int)
+{
+    auto tmp = ip_pool;
+    return filter_helper(tmp);
+}
+template<class... Args>
+inline auto filter_helper(const std::vector<std::vector<int>>& ip_pool,int index,int byte,Args... args)
+{
+    auto width = ip_pool.size();
+
+    //На всякий пожарный
+    if(!ip_pool.empty() && (index >= ip_pool[0].size()))
+        return filter_helper(ip_pool,index);
+
+    std::vector<std::vector<int>> result;
+    result.reserve(width);
+
+    for(size_t x = 0; x<width; ++x)
     {
-        auto ip = ip_pool[i];
-        if(ip[index]==std::to_string(byte))
+        auto &ip = ip_pool[x];
+        if(ip[index] == byte)
+        {
             result.push_back(ip);
+        }
     }
     return filter_helper(result,++index,args...);
 }
@@ -76,6 +114,7 @@ void print_ips(const std::vector<std::vector<std::string> >& ip_pool)
             if (ip_part != ip->cbegin())
             {
                 std::cout << ".";
+
             }
             std::cout << *ip_part;
         }
@@ -89,41 +128,17 @@ int main(int argc, char const *argv[])
     {
         std::vector<std::vector<std::string>> ip_pool;
 
-        auto filter = [&ip_pool](auto... args) mutable
-        {
-          return filter_helper(ip_pool,0,args...);
-        };
-
-        auto filter_any = [&ip_pool](int byte) mutable
-        {
-            auto length = ip_pool.size();
-            auto result = std::vector<std::vector<std::string>>();
-            result.reserve(length);
-
-            for(size_t i = 0;i<length;++i)
-            {  
-                for(auto &ip_byte: ip_pool[i])
-                {
-                    auto this_byte = std::stoi(ip_byte);
-                    if (this_byte==byte)
-                    {
-                        result.push_back(ip_pool[i]);
-                        break;
-                    }
-                }
-            }
-            return result;
-        };
-
+        //Ввод
         for(std::string line; std::getline(std::cin, line) && (line.size()>0);)
         {
             std::vector<std::string> v = split(line, '\t');
             ip_pool.push_back(split(v.at(0), '.'));
         }
 
-        ip_pool = filter_helper(ip_pool,0);//this should sort ip_pool
+        //Сортировка
+        ip_pool = filter_helper(ip_pool);
+        std::cout<<"--------------------------"<<std::endl;
         print_ips(ip_pool);
-        //std::cout<<"-------------------------"<<std::endl;
 
         // 222.173.235.246
         // 222.130.177.64
@@ -133,10 +148,41 @@ int main(int argc, char const *argv[])
         // 1.29.168.152
         // 1.1.234.8
 
-        // TODO filter by first byte and output
+
+        // <Лямбды>
+        auto filter = [&ip_pool](auto... args) mutable
+        {
+            auto int_vector = str_vector_to_int_vector(ip_pool);
+            return filter_helper(int_vector,0,args...);
+        };
+
+        auto filter_any = [&ip_pool](int byte) mutable
+        {
+            auto length = ip_pool.size();
+            auto result = std::vector<std::vector<std::string>>();
+            result.reserve(length);
+            std::string byte_string = std::to_string(byte);
+
+            for(size_t i = 0;i<length;++i)
+            {  
+                for(auto &ip_byte: ip_pool[i])
+                {
+                    if (ip_byte == byte_string)
+                    {
+                        result.push_back(ip_pool[i]);
+                        break;
+                    }
+                }
+            }
+            return result;
+        };
+        // </Лямбды>
+
+        //filter by first byte and output
+        
         auto ip = filter(1);
+        std::cout<<"--------------------------"<<std::endl<<"filter(1):"<<std::endl;
         print_ips(ip);
-        //std::cout<<"-------------------------"<<std::endl;
 
         // 1.231.69.33
         // 1.87.203.225
@@ -144,26 +190,20 @@ int main(int argc, char const *argv[])
         // 1.29.168.152
         // 1.1.234.8
 
-        // TODO filter by first and second bytes and output
-        // ip = filter(46, 70)
-
-        
-        ip = filter(46,70);
+        //filter by first and second bytes and output
+        ip = filter(46, 70);
+        std::cout<<"--------------------------"<<std::endl<<"filter(46,70):"<<std::endl;
         print_ips(ip);
-        //std::cout<<"-------------------------"<<std::endl;
 
         // 46.70.225.39
         // 46.70.147.26
         // 46.70.113.73
         // 46.70.29.76
 
-        // TODO filter by any byte and output
-        // ip = filter_any(46)
-
-        
+        //filter by any byte and output
         ip = filter_any(46);
+        std::cout<<"--------------------------"<<std::endl<<"filter_any(46):"<<std::endl;
         print_ips(ip);
-        //std::cout<<"-------------------------"<<std::endl;
 
         // 186.204.34.46
         // 186.46.222.194
